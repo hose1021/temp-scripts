@@ -14,19 +14,20 @@ Userscript для Steam, который ищет страницу игры на 
 - Кэширует результат в `localStorage`, чтобы не делать лишние запросы.
 - Позволяет свернуть виджет и вручную обновить результат.
 
-## Установка
+## Установка 🎓
 
-1. Установите расширение для userscript'ов:
-   - [Tampermonkey](https://www.tampermonkey.net/)
+1. Установите одно из расширений для запуска пользовательских скриптов:
+
+   - [Tampermonkey](https://www.tampermonkey.net/) _(рекомендуемое)_
    - [Violentmonkey](https://violentmonkey.github.io/)
    - [Greasemonkey](https://www.greasespot.net/)
+   - [Userscripts](https://github.com/quoid/userscripts)
 
-2. Откройте файл [`userscript/byrut-checker.user.js`](userscript/byrut-checker.user.js).
+2. [Разрешите выполнение userscript'ов и режим разработчика](https://www.tampermonkey.net/faq.php?locale=ru#Q209) в вашем браузере.
 
-3. Установите скрипт в расширение вручную или через raw-ссылку GitHub после публикации репозитория.
+3. Установите скрипт, перейдя по [этой ссылке](https://github.com/hose1021/temp-scripts/raw/main/userscript/byrut-checker.user.js). _(либо скачайте `byrut-checker.user.js` из папки `userscript` и установите вручную)_
 
-4. Откройте страницу игры в Steam, например:
-   `https://store.steampowered.com/app/1868140/DAVE_THE_DIVER/`
+Готово, теперь откройте страницу игры в Steam _([пример](https://store.steampowered.com/app/1868140/DAVE_THE_DIVER/))_.
 
 ## Структура
 

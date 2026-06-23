@@ -14,19 +14,20 @@ A Steam userscript that looks up a game on ByRutGame and shows a compact widget 
 - Caches lookup results in `localStorage`.
 - Supports collapsing the widget and manually refreshing the lookup.
 
-## Installation
+## Installation 🎓
 
-1. Install a userscript manager:
-   - [Tampermonkey](https://www.tampermonkey.net/)
+1. Install one of the extensions for running userscripts:
+
+   - [Tampermonkey](https://www.tampermonkey.net/) _(recommended)_
    - [Violentmonkey](https://violentmonkey.github.io/)
    - [Greasemonkey](https://www.greasespot.net/)
+   - [Userscripts](https://github.com/quoid/userscripts)
 
-2. Open [`userscript/byrut-checker.user.js`](userscript/byrut-checker.user.js).
+2. [Allow userscripts and developer mode](https://www.tampermonkey.net/faq.php?locale=ru#Q209) in your browser.
 
-3. Install the script manually or via a GitHub raw link after publishing this repository.
+3. Install the script by opening [this link](https://github.com/hose1021/temp-scripts/raw/main/userscript/byrut-checker.user.js). _(or download `byrut-checker.user.js` from the `userscript` folder and install it manually)_
 
-4. Open a Steam game page, for example:
-   `https://store.steampowered.com/app/1868140/DAVE_THE_DIVER/`
+Done, now open a Steam game page _([example](https://store.steampowered.com/app/1868140/DAVE_THE_DIVER/))_.
 
 ## Disclaimer
 
