@@ -332,16 +332,31 @@
   function parseSteamAppInfo(html) {
     const result = {};
     const doc = toDoc(html);
-    const rows = doc.querySelectorAll('tr');
+
+    // Dump HTML around "Last Record Update"
+    const bodyText = textOf(doc.body);
+    const idx = bodyText.indexOf('Last Record Update');
+    if (idx >= 0) {
+      const snippet = bodyText.substring(Math.max(0,idx-50), idx+120);
+      console.debug('ByRut: context around Last Record Update:', snippet);
+    }
+
+    // Try all table-like structures
+    const rows = doc.querySelectorAll('tr, .table tr, [class*="row"]');
+    console.debug('ByRut: found', rows.length, 'rows');
     for (const row of rows) {
       const cells = row.querySelectorAll('td, th');
       if (cells.length < 2) continue;
       const label = textOf(cells[0]).toLowerCase();
-      const value = textOf(cells[1]).replace(/UTC.*/i,'').trim();
-      if (!value) continue;
-      if (label.includes('release date')) result.steamDate = value;
-      else if (label.includes('last record update')) result.steamUpdate = value;
+      if (label.includes('last record')||label.includes('release date')) {
+        const value = textOf(cells[1]).replace(/UTC.*/i,'').trim();
+        console.debug('ByRut: found row:', label, '=', value);
+        if (label.includes('release date')) result.steamDate = value;
+        else if (label.includes('last record update')) result.steamUpdate = value;
+      }
     }
+
+    console.debug('ByRut: parseSteamAppInfo result:', result);
     return Object.keys(result).length ? result : null;
   }
 
