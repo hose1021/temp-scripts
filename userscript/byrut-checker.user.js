@@ -256,7 +256,7 @@
 
   function fetchSteamPlayers(appid, onDone) {
     const ck = `byrut-steamplayers:${appid}`;
-    try { const r=localStorage.getItem(ck); if (r) { const c=JSON.parse(r); if (c&&c.time&&Date.now()-c.time<300000) { onDone(c.data); return; } } } catch(_) {}
+    try { const r=localStorage.getItem(ck); if (r) { const c=JSON.parse(r); if (c&&c.data&&c.time&&Date.now()-c.time<300000) { onDone(c.data); return; } } } catch(_) {}
     const url = `https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=${appid}`;
     const h = {'Accept':'application/json'};
     xhrGet(url, h, {timeout:8000}).then(res => {
@@ -269,7 +269,7 @@
 
   function fetchSteamCharts(appid, onDone) {
     const ck = `byrut-steamcharts:${appid}`;
-    try { const r=localStorage.getItem(ck); if (r) { const c=JSON.parse(r); if (c&&c.time&&Date.now()-c.time<3600000) { onDone(c.data); return; } } } catch(_) {}
+    try { const r=localStorage.getItem(ck); if (r) { const c=JSON.parse(r); if (c&&c.data&&c.time&&Date.now()-c.time<3600000) { onDone(c.data); return; } } } catch(_) {}
     const url = `https://steamcharts.com/app/${appid}`;
     const h = {'Accept':'text/html,*/*'};
     xhrGet(url, h, {timeout:12000}).then(res => {
@@ -299,8 +299,8 @@
 
   function fetchSteamUpdate(appid, onDone) {
     const ck = `byrut-steamupdate:${appid}`;
-    try { const r=localStorage.getItem(ck); if (r) { const c=JSON.parse(r); if (c&&c.time&&Date.now()-c.time<3600000) { onDone(c.data); return; } } } catch(_) {}
-    const url = `https://steamdb.info/app/${appid}/patchnotes/`;
+    try { const r=localStorage.getItem(ck); if (r) { const c=JSON.parse(r); if (c&&c.data&&c.time&&Date.now()-c.time<3600000) { onDone(c.data); return; } } } catch(_) {}
+      const url = `https://steamdb.info/app/${appid}/patchnotes/`;
     const h = {'Accept':'text/html,*/*'};
     xhrGet(url, h, {timeout:12000}).then(res => {
       const d = parseSteamAppInfo(res.responseText);
@@ -329,7 +329,7 @@
 
   function fetchProtonDB(appid, onDone) {
     const ck = `byrut-protondb:${appid}`;
-    try { const r=localStorage.getItem(ck); if (r) { const c=JSON.parse(r); if (c&&c.time&&Date.now()-c.time<86400000) { onDone(c.data); return; } } } catch(_) {}
+    try { const r=localStorage.getItem(ck); if (r) { const c=JSON.parse(r); if (c&&c.data&&c.time&&Date.now()-c.time<86400000) { onDone(c.data); return; } } } catch(_) {}
     const url = `https://www.protondb.com/app/${appid}`;
     const h = {'Accept':'text/html,*/*'};
     xhrGet(url, h, {timeout:10000}).then(res => {
@@ -431,7 +431,7 @@
 
   function cacheKey(name) { return `byrut-checker:${normalizeTitle(name)}`; }
   function getCacheTtl() { return (settings.cacheTtlHours||4)*3600000; }
-  function getCachedData(name) { try { const r=localStorage.getItem(cacheKey(name)); if (!r) return null; const c=JSON.parse(r); if (!c||!c.time||Date.now()-c.time>getCacheTtl()) { localStorage.removeItem(cacheKey(name)); return null; } return {data:c.data||null,time:c.time}; } catch(_) { return null; } }
+  function getCachedData(name) { try { const r=localStorage.getItem(cacheKey(name)); if (!r) return null; const c=JSON.parse(r); if (!c||!c.data||!c.time||Date.now()-c.time>getCacheTtl()) { localStorage.removeItem(cacheKey(name)); return null; } return {data:c.data,time:c.time}; } catch(_) { return null; } }
   function setCachedData(name, data) { if (data?.loading) return; try { localStorage.setItem(cacheKey(name), JSON.stringify({time:Date.now(),data})); } catch(_) {} }
   function clearCachedData(name) { try { localStorage.removeItem(cacheKey(name)); } catch(_) {} }
   function formatCacheAge(ts) { if (!ts) return ''; const diff=Math.floor((Date.now()-ts)/60000); if (diff<1) return '<1'+t('cacheMin'); if (diff<60) return diff+t('cacheMin'); const h=Math.floor(diff/60); if (h<24) return h+t('cacheHour'); return Math.floor(h/24)+t('cacheDay'); }
