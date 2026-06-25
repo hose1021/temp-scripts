@@ -260,7 +260,7 @@
     const url = `https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=${appid}`;
     const h = {'Accept':'application/json'};
     xhrGet(url, h, {timeout:8000}).then(res => {
-      try { const j=JSON.parse(res.responseText); const cnt=j?.response?.player_count; const d={onlinePlayers:cnt!=null?String(cnt):null}; try { localStorage.setItem(ck, JSON.stringify({time:Date.now(),data:d})); } catch(_) {} onDone(d); }
+      try { const j=JSON.parse(res.responseText); const cnt=j?.response?.player_count; const d={onlinePlayers:cnt!=null?String(cnt):null}; if (d.onlinePlayers) try { localStorage.setItem(ck, JSON.stringify({time:Date.now(),data:d})); } catch(_) {} onDone(d); }
       catch(_) { onDone({onlinePlayers:null}); }
     }, () => onDone({onlinePlayers:null}));
   }
@@ -274,7 +274,7 @@
     const h = {'Accept':'text/html,*/*'};
     xhrGet(url, h, {timeout:12000}).then(res => {
       const d = parseSteamCharts(res.responseText);
-      try { localStorage.setItem(ck, JSON.stringify({time:Date.now(),data:d})); } catch(_) {}
+      if (d.onlinePlayers||d.onlinePeak24h||d.onlinePeakAll) try { localStorage.setItem(ck, JSON.stringify({time:Date.now(),data:d})); } catch(_) {}
       onDone(d);
     }, () => onDone(null));
   }
@@ -304,7 +304,7 @@
     const h = {'Accept':'text/html,*/*'};
     xhrGet(url, h, {timeout:12000}).then(res => {
       const d = parseSteamAppInfo(res.responseText);
-      try { localStorage.setItem(ck, JSON.stringify({time:Date.now(),data:d})); } catch(_) {}
+      if (d) try { localStorage.setItem(ck, JSON.stringify({time:Date.now(),data:d})); } catch(_) {}
       onDone(d);
     }, () => { console.debug('ByRut: SteamDB app info fetch failed'); onDone(null); });
   }
