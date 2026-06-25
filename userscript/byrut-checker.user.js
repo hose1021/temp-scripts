@@ -295,7 +295,7 @@
     return data;
   }
 
-  // ── SteamDB Update ──────────────────
+  // ── SteamDB App Info ────────────────
 
   function fetchSteamUpdate(appid, onDone) {
     const ck = `byrut-steamupdate:${appid}`;
@@ -303,24 +303,26 @@
     const url = `https://steamdb.info/app/${appid}/patchnotes/`;
     const h = {'Accept':'text/html,*/*'};
     xhrGet(url, h, {timeout:12000}).then(res => {
-      const d = parseSteamUpdate(res.responseText);
+      const d = parseSteamAppInfo(res.responseText);
       try { localStorage.setItem(ck, JSON.stringify({time:Date.now(),data:d})); } catch(_) {}
       onDone(d);
     }, () => onDone(null));
   }
 
-  function parseSteamUpdate(html) {
+  function parseSteamAppInfo(html) {
+    const result = {};
     const doc = toDoc(html);
     const rows = doc.querySelectorAll('tr');
     for (const row of rows) {
       const cells = row.querySelectorAll('td');
       if (cells.length < 2) continue;
-      const label = textOf(cells[0]);
-      if (!/last record update/i.test(label)) continue;
+      const label = textOf(cells[0]).toLowerCase();
       const value = textOf(cells[1]).replace(/UTC.*/i,'').trim();
-      if (value) return { steamUpdate: value };
+      if (!value) continue;
+      if (label.includes('release date')) result.steamDate = value;
+      else if (label.includes('last record update')) result.steamUpdate = value;
     }
-    return null;
+    return Object.keys(result).length ? result : null;
   }
 
   // ── ProtonDB ────────────────────────
@@ -494,13 +496,13 @@
     addLine(body, t('date'), info.date);
     addLine(body, t('updated'), info.updated);
     addLine(body, t('version'), info.versions.join(', '));
-    if (steamStore?.steamDate&&info.date) { const n=d=>d.replace(/[^a-zа-яё0-9]/giu,'').toLowerCase().slice(0,8); if (n(steamStore.steamDate)!==n(info.date)) addLine(body, t('steamDate'), steamStore.steamDate); }
 
-    // Steam data (online, peak 24h, peak all-time)
+    // Steam data (online, peak 24h, peak all-time, steam date, steam update)
     if (steamData) {
       if (steamData.onlinePlayers) addLine(body, t('onlinePlayers'), fmtNum(steamData.onlinePlayers), 'byrut-online-players byrut-online-players--live');
       if (steamData.onlinePeak24h) addLine(body, t('onlinePeak24h'), fmtNum(steamData.onlinePeak24h));
       if (steamData.onlinePeakAll) addLine(body, t('onlinePeakAll'), fmtNum(steamData.onlinePeakAll));
+      if (steamData.steamDate) addLine(body, t('steamDate'), steamData.steamDate);
       if (steamData.steamUpdate) addLine(body, t('steamUpdate'), steamData.steamUpdate);
     }
 
@@ -641,7 +643,7 @@
 
     // ── Async external data ────────────
     if (appid && found) {
-      const steamData = { onlinePlayers:null, onlinePeak24h:null, onlinePeakAll:null, steamUpdate:null };
+      const steamData = { onlinePlayers:null, onlinePeak24h:null, onlinePeakAll:null, steamUpdate:null, steamDate:null };
 
       function refreshMeta() {
         const w = document.querySelector('#byrut-widget');
