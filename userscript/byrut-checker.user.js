@@ -300,7 +300,7 @@
   function fetchSteamUpdate(appid, onDone) {
     const ck = `byrut-steamupdate:${appid}`;
     try { const r=localStorage.getItem(ck); if (r) { const c=JSON.parse(r); if (c&&c.time&&Date.now()-c.time<3600000) { onDone(c.data); return; } } } catch(_) {}
-    const url = `https://steamdb.info/app/${appid}/`;
+    const url = `https://steamdb.info/app/${appid}/patchnotes/`;
     const h = {'Accept':'text/html,*/*'};
     xhrGet(url, h, {timeout:12000}).then(res => {
       const d = parseSteamUpdate(res.responseText);
