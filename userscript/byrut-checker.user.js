@@ -333,21 +333,15 @@
     const result = {};
     const doc = toDoc(html);
     const rows = doc.querySelectorAll('tr');
-    const found = [];
     for (const row of rows) {
-      const cells = row.querySelectorAll('td');
+      const cells = row.querySelectorAll('td, th');
       if (cells.length < 2) continue;
       const label = textOf(cells[0]).toLowerCase();
       const value = textOf(cells[1]).replace(/UTC.*/i,'').trim();
-      if (label.includes('record')||label.includes('release')||label.includes('date')||label.includes('update')) {
-        found.push({label, value});
-      }
       if (!value) continue;
       if (label.includes('release date')) result.steamDate = value;
       else if (label.includes('last record update')) result.steamUpdate = value;
     }
-    console.debug('ByRut: parseSteamAppInfo found rows:', found);
-    console.debug('ByRut: parseSteamAppInfo result:', result);
     return Object.keys(result).length ? result : null;
   }
 
