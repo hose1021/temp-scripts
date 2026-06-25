@@ -14,7 +14,7 @@
 // @connect      byrutgame.org
 // @connect      api.steampowered.com
 // @connect      steamcharts.com
-// @connect      steamdb.info
+// @connect      steampowered.com
 // @connect      protondb.com
 // @run-at       document-idle
 // ==/UserScript==
@@ -119,7 +119,6 @@
       updatedBadge:'Обновлено',position:'Позиция виджета',right:'Справа',left:'Слева',
       cacheTtl:'Кэш (часов)',autoCollapse:'Автосворачивание',language:'Язык',
       onlinePlayers:'Онлайн игроков',onlinePeak24h:'Пик за 24ч',onlinePeakAll:'Пик за всё время',
-      steamUpdate:'Обновление в Steam',
       protonDB:'ProtonDB',
       steamRating:'Рейтинг',steamDeck:'Steam Deck',steamDate:'Дата в Steam',
       dlc:'DLC',dlcCount:'{} шт.',
@@ -141,7 +140,6 @@
       updatedBadge:'Updated',position:'Widget position',right:'Right',left:'Left',
       cacheTtl:'Cache (hours)',autoCollapse:'Auto collapse',language:'Language',
       onlinePlayers:'Online players',onlinePeak24h:'24h peak',onlinePeakAll:'All-time peak',
-      steamUpdate:'Steam update',
       protonDB:'ProtonDB',
       steamRating:'Rating',steamDeck:'Steam Deck',steamDate:'Steam date',
       dlc:'DLC',dlcCount:'{} pcs.',
@@ -192,7 +190,7 @@
     if (typeof GM_registerMenuCommand==='function') {
       GM_registerMenuCommand('ByRut Checker: Settings', () => showSettingsPanel());
       GM_registerMenuCommand('ByRut Checker: Clear cache', () => {
-        for (let i=localStorage.length-1;i>=0;i--) { const k=localStorage.key(i);         if (k&&(k.startsWith('byrut-checker:')||k.startsWith('byrut-steamcharts:')||k.startsWith('byrut-steamplayers:')||k.startsWith('byrut-steamupdate:'))) localStorage.removeItem(k); }
+        for (let i=localStorage.length-1;i>=0;i--) { const k=localStorage.key(i);         if (k&&(k.startsWith('byrut-checker:')||k.startsWith('byrut-steamcharts:')||k.startsWith('byrut-steamplayers:'))) localStorage.removeItem(k); }
       });
     }
   } catch(_) {}
@@ -293,71 +291,6 @@
       else if (label.includes('all-time')) data.onlinePeakAll = val;
     }
     return data;
-  }
-
-  // ── SteamDB App Info ────────────────
-
-  function fetchSteamUpdate(appid, onDone) {
-    console.log('ByRut: fetchSteamUpdate called, appid=', appid);
-    const ck = `byrut-steamupdate:${appid}`;
-    try {
-      const r = localStorage.getItem(ck);
-      if (r) {
-        const c = JSON.parse(r);
-        console.log('ByRut: steamupdate cache found, age=', Date.now()-c.time, 'data=', c.data);
-        if (c&&c.data&&c.time&&Date.now()-c.time<3600000) {
-          console.log('ByRut: steamupdate using cache');
-          onDone(c.data);
-          return;
-        }
-        console.log('ByRut: steamupdate cache expired or null, removing');
-        localStorage.removeItem(ck);
-      }
-    } catch(_) {}
-    const url = `https://steamdb.info/app/${appid}/patchnotes/`;
-    console.log('ByRut: steamupdate fetching', url);
-    const h = {'Accept':'text/html,*/*'};
-    xhrGet(url, h, {timeout:12000}).then(res => {
-      console.log('ByRut: steamupdate response received, length=', res.responseText.length);
-      const d = parseSteamAppInfo(res.responseText);
-      console.log('ByRut: steamupdate parsed=', d);
-      if (d) try { localStorage.setItem(ck, JSON.stringify({time:Date.now(),data:d})); } catch(_) {}
-      onDone(d);
-    }, err => {
-      console.warn('ByRut: SteamDB app info fetch FAILED', err);
-      onDone(null);
-    });
-  }
-
-  function parseSteamAppInfo(html) {
-    const result = {};
-    const doc = toDoc(html);
-
-    // Dump HTML around "Last Record Update"
-    const bodyText = textOf(doc.body);
-    const idx = bodyText.indexOf('Last Record Update');
-    if (idx >= 0) {
-      const snippet = bodyText.substring(Math.max(0,idx-50), idx+120);
-      console.debug('ByRut: context around Last Record Update:', snippet);
-    }
-
-    // Try all table-like structures
-    const rows = doc.querySelectorAll('tr, .table tr, [class*="row"]');
-    console.debug('ByRut: found', rows.length, 'rows');
-    for (const row of rows) {
-      const cells = row.querySelectorAll('td, th');
-      if (cells.length < 2) continue;
-      const label = textOf(cells[0]).toLowerCase();
-      if (label.includes('last record')||label.includes('release date')) {
-        const value = textOf(cells[1]).replace(/UTC.*/i,'').trim();
-        console.debug('ByRut: found row:', label, '=', value);
-        if (label.includes('release date')) result.steamDate = value;
-        else if (label.includes('last record update')) result.steamUpdate = value;
-      }
-    }
-
-    console.debug('ByRut: parseSteamAppInfo result:', result);
-    return Object.keys(result).length ? result : null;
   }
 
   // ── ProtonDB ────────────────────────
@@ -532,16 +465,14 @@
     addLine(body, t('updated'), info.updated);
     addLine(body, t('version'), info.versions.join(', '));
 
-    // Steam date — from SteamDB if available, otherwise from DOM
-    if (steamData?.steamDate) addLine(body, t('steamDate'), steamData.steamDate);
-    else if (steamStore?.steamDate) addLine(body, t('steamDate'), steamStore.steamDate);
+    // Steam date — from DOM
+    if (steamStore?.steamDate) addLine(body, t('steamDate'), steamStore.steamDate);
 
-    // Steam data (online, peaks, update)
+    // Steam data (online, peaks)
     if (steamData) {
       if (steamData.onlinePlayers) addLine(body, t('onlinePlayers'), fmtNum(steamData.onlinePlayers), 'byrut-online-players byrut-online-players--live');
       if (steamData.onlinePeak24h) addLine(body, t('onlinePeak24h'), fmtNum(steamData.onlinePeak24h));
       if (steamData.onlinePeakAll) addLine(body, t('onlinePeakAll'), fmtNum(steamData.onlinePeakAll));
-      if (steamData.steamUpdate) addLine(body, t('steamUpdate'), steamData.steamUpdate);
     }
 
     if (info.seeders||info.leechers) {
@@ -680,9 +611,8 @@
     if (options.cache!==false&&!loading) setCachedData(name, data);
 
     // ── Async external data ────────────
-    console.log('ByRut: async section, appid=', appid, 'found=', found, 'fetchSteamDB=', settings.fetchSteamDB);
     if (appid && found) {
-      const steamData = { onlinePlayers:null, onlinePeak24h:null, onlinePeakAll:null, steamUpdate:null, steamDate:null };
+      const steamData = { onlinePlayers:null, onlinePeak24h:null, onlinePeakAll:null };
 
       function refreshMeta() {
         const w = document.querySelector('#byrut-widget');
@@ -698,17 +628,10 @@
       fetchSteamPlayers(appid, players => { Object.assign(steamData, players); refreshMeta(); });
 
       if (settings.fetchSteamDB) {
-        console.log('ByRut: SteamDB block entered, fetchSteamDB=', settings.fetchSteamDB);
         fetchSteamCharts(appid, sc => { if (sc) {
           Object.assign(steamData, sc);
           refreshMeta();
         } });
-        fetchSteamUpdate(appid, su => { if (su) {
-          Object.assign(steamData, su);
-          refreshMeta();
-        } });
-      } else {
-        console.log('ByRut: SteamDB block SKIPPED, fetchSteamDB=', settings.fetchSteamDB);
       }
 
       fetchProtonDB(appid, protonTier => {
