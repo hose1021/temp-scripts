@@ -306,7 +306,7 @@
       const d = parseSteamAppInfo(res.responseText);
       try { localStorage.setItem(ck, JSON.stringify({time:Date.now(),data:d})); } catch(_) {}
       onDone(d);
-    }, () => onDone(null));
+    }, () => { console.debug('ByRut: SteamDB app info fetch failed'); onDone(null); });
   }
 
   function parseSteamAppInfo(html) {
@@ -497,12 +497,15 @@
     addLine(body, t('updated'), info.updated);
     addLine(body, t('version'), info.versions.join(', '));
 
-    // Steam data (online, peak 24h, peak all-time, steam date, steam update)
+    // Steam date — from SteamDB if available, otherwise from DOM
+    if (steamData?.steamDate) addLine(body, t('steamDate'), steamData.steamDate);
+    else if (steamStore?.steamDate) addLine(body, t('steamDate'), steamStore.steamDate);
+
+    // Steam data (online, peaks, update)
     if (steamData) {
       if (steamData.onlinePlayers) addLine(body, t('onlinePlayers'), fmtNum(steamData.onlinePlayers), 'byrut-online-players byrut-online-players--live');
       if (steamData.onlinePeak24h) addLine(body, t('onlinePeak24h'), fmtNum(steamData.onlinePeak24h));
       if (steamData.onlinePeakAll) addLine(body, t('onlinePeakAll'), fmtNum(steamData.onlinePeakAll));
-      if (steamData.steamDate) addLine(body, t('steamDate'), steamData.steamDate);
       if (steamData.steamUpdate) addLine(body, t('steamUpdate'), steamData.steamUpdate);
     }
 
