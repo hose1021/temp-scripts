@@ -298,29 +298,29 @@
   // ── SteamDB App Info ────────────────
 
   function fetchSteamUpdate(appid, onDone) {
-    console.debug('ByRut: fetchSteamUpdate called, appid=', appid);
+    console.log('ByRut: fetchSteamUpdate called, appid=', appid);
     const ck = `byrut-steamupdate:${appid}`;
     try {
       const r = localStorage.getItem(ck);
       if (r) {
         const c = JSON.parse(r);
-        console.debug('ByRut: steamupdate cache found, age=', Date.now()-c.time, 'data=', c.data);
+        console.log('ByRut: steamupdate cache found, age=', Date.now()-c.time, 'data=', c.data);
         if (c&&c.data&&c.time&&Date.now()-c.time<3600000) {
-          console.debug('ByRut: steamupdate using cache');
+          console.log('ByRut: steamupdate using cache');
           onDone(c.data);
           return;
         }
-        console.debug('ByRut: steamupdate cache expired or null, removing');
+        console.log('ByRut: steamupdate cache expired or null, removing');
         localStorage.removeItem(ck);
       }
     } catch(_) {}
     const url = `https://steamdb.info/app/${appid}/patchnotes/`;
-    console.debug('ByRut: steamupdate fetching', url);
+    console.log('ByRut: steamupdate fetching', url);
     const h = {'Accept':'text/html,*/*'};
     xhrGet(url, h, {timeout:12000}).then(res => {
-      console.debug('ByRut: steamupdate response received, length=', res.responseText.length);
+      console.log('ByRut: steamupdate response received, length=', res.responseText.length);
       const d = parseSteamAppInfo(res.responseText);
-      console.debug('ByRut: steamupdate parsed=', d);
+      console.log('ByRut: steamupdate parsed=', d);
       if (d) try { localStorage.setItem(ck, JSON.stringify({time:Date.now(),data:d})); } catch(_) {}
       onDone(d);
     }, err => {
@@ -333,15 +333,21 @@
     const result = {};
     const doc = toDoc(html);
     const rows = doc.querySelectorAll('tr');
+    const found = [];
     for (const row of rows) {
       const cells = row.querySelectorAll('td');
       if (cells.length < 2) continue;
       const label = textOf(cells[0]).toLowerCase();
       const value = textOf(cells[1]).replace(/UTC.*/i,'').trim();
+      if (label.includes('record')||label.includes('release')||label.includes('date')||label.includes('update')) {
+        found.push({label, value});
+      }
       if (!value) continue;
       if (label.includes('release date')) result.steamDate = value;
       else if (label.includes('last record update')) result.steamUpdate = value;
     }
+    console.debug('ByRut: parseSteamAppInfo found rows:', found);
+    console.debug('ByRut: parseSteamAppInfo result:', result);
     return Object.keys(result).length ? result : null;
   }
 
@@ -665,7 +671,7 @@
     if (options.cache!==false&&!loading) setCachedData(name, data);
 
     // ── Async external data ────────────
-    console.debug('ByRut: async section, appid=', appid, 'found=', found, 'fetchSteamDB=', settings.fetchSteamDB);
+    console.log('ByRut: async section, appid=', appid, 'found=', found, 'fetchSteamDB=', settings.fetchSteamDB);
     if (appid && found) {
       const steamData = { onlinePlayers:null, onlinePeak24h:null, onlinePeakAll:null, steamUpdate:null, steamDate:null };
 
@@ -683,7 +689,7 @@
       fetchSteamPlayers(appid, players => { Object.assign(steamData, players); refreshMeta(); });
 
       if (settings.fetchSteamDB) {
-        console.debug('ByRut: SteamDB block entered, fetchSteamDB=', settings.fetchSteamDB);
+        console.log('ByRut: SteamDB block entered, fetchSteamDB=', settings.fetchSteamDB);
         fetchSteamCharts(appid, sc => { if (sc) {
           Object.assign(steamData, sc);
           refreshMeta();
@@ -693,7 +699,7 @@
           refreshMeta();
         } });
       } else {
-        console.debug('ByRut: SteamDB block SKIPPED, fetchSteamDB=', settings.fetchSteamDB);
+        console.log('ByRut: SteamDB block SKIPPED, fetchSteamDB=', settings.fetchSteamDB);
       }
 
       fetchProtonDB(appid, protonTier => {
